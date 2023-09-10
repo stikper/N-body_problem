@@ -2,9 +2,9 @@
 #define MASS_OF_SUN 1.98847e30
 #define MASS_OF_EARTH 5.9722e24
 #define ASTRONOMICAL_UNIT 1.49597870700e11
-#define EARTH_VELOCITY 0.978e4
+#define EARTH_VELOCITY 2.978e4
 #define TIME_STEP 3600
-#define TIME_END (320 * 24 * 3600)
+#define TIME_END (365 * 24 * 3600)
 #define G GRAVITATIONAL_CONSTANT
 
 #include <iostream>
@@ -20,9 +20,22 @@ using namespace std;
 struct object {
     double m = 1; //Mass
     vector<double> coordinates = {0, 0, 0};
-    vector<double> velocities = {0, 0, 0};
-    vector<double> accelerations = {0, 0, 0};
+    vector<double> velocity = {0, 0, 0};
+    vector<double> acceleration = {0, 0, 0};
 };
+
+void dataWriter(ofstream& out, const vector<double>& data) {
+    for (auto i : data) {
+        out << i << " ";
+    }
+    out << endl;
+}
+
+void dataOut(const vector<object>& objects, vector<ofstream>& dataFiles) {
+    for (size_t i = 0; i < dataFiles.size(); i++) {
+        dataWriter(dataFiles[i], objects[i].coordinates);
+    }
+}
 
 double degToRad(double degrees) {
     return degrees * (M_PI / 180);
@@ -32,57 +45,129 @@ double radToDeg(double radians) {
     return radians * (180 / M_PI);
 }
 
-vector<double> sumVectorVector(vector<double> x, vector<double> y) {
-    size_t cols = x.size();
-    vector<double> res(cols, 0);
-    for (int i = 0; i < cols; i++) {
-        res[i] = x[i] + y[i];
+
+// Methods for vectors
+double getVectorMagnitude(const vector<double>& a) {
+    double sumOfSquares = 0;
+    for (auto i : a) {
+        sumOfSquares += pow(i, 2);
     }
-    return res;
+    return sqrt(sumOfSquares);
 }
 
-double getDistanceBetweenObjects(const object& obj1, const object& obj2) {
-    return sqrt(pow(obj2.coordinates[0] - obj1.coordinates[0], 2) + pow(obj2.coordinates[1] - obj1.coordinates[1], 2)  + pow(obj2.coordinates[2] - obj1.coordinates[2], 2));
+vector<double> sumVectorVector(const vector<double>& a, const vector<double>& b) {
+    vector<double> result(max(a.size(), b.size()), 0);
+    for(size_t i = 0; i < a.size(); i++) {
+        result[i] += a[i];
+    }
+    for(size_t i = 0; i < b.size(); i++) {
+        result[i] += b[i];
+    }
+    return result;
 }
 
-vector<double> getDistanceByCoordinates(const object& obj1, const object& obj2) {
-    vector<double> distances= {obj2.coordinates[0] - obj1.coordinates[0], obj2.coordinates[1] - obj1.coordinates[1], obj2.coordinates[2] - obj1.coordinates[2]};
+vector<double> differenceVectorVector(const vector<double>& a, const vector<double>& b) {
+    vector<double> result(max(a.size(), b.size()), 0);
+    for(size_t i = 0; i < a.size(); i++) {
+        result[i] += a[i];
+    }
+    for(size_t i = 0; i < b.size(); i++) {
+        result[i] -= b[i];
+    }
+    return result;
+}
+
+vector<double> multiplyNumberVector(const double& n, const vector<double>& a) {
+    vector<double> result(a.size(), 0);
+    for (size_t i = 0; i < a.size(); i++) {
+        result[i] += a[i] * n;
+    }
+    return result;
+}
+
+double dotProduct(const vector<double>& a, const vector<double>& b) {
+    double result = 0;
+    for (size_t i = 0; i < min(a.size(), b.size()); i++) {
+        result = a[i] * b[i];
+    }
+    return result;
+}
+
+vector<double> crossProduct(vector<double> a, vector<double> b) {
+    for (size_t i = a.size(); i < 3; i++) {
+        a.push_back(0);
+    }
+    for (size_t i = b.size(); i < 3; i++) {
+        b.push_back(0);
+    }
+    vector<double> result(3, 0);
+    result[0] = (a[1] * b[2] - a[2] * b[1]);
+    result[1] = (a[2] * b[0] - a[0] * b[2]);
+    result[2] = (a[0] * b[1] - a[1] * b[0]);
+    return result;
+}
+
+double getProjection(const vector<double>& a, const vector<double>& b) {
+    return dotProduct(a, b) / getVectorMagnitude(b);
+}
+
+
+// Methods for bodies
+vector<double> getDistanceVector(const object& obj1, const object& obj2) {
+    vector<double> distances = differenceVectorVector(obj2.coordinates, obj1.coordinates);
     return distances;
 }
 
-vector<double> getAccelerationsByForces(const object& obj, vector<double> forces) {
-    vector<double> accelerations(3);
-    for (int i = 0; i < 3; i++) {
-        accelerations[i] = forces[i] / obj.m; // Newton's second law
-    }
-    return accelerations;
+double getDistance(const vector<double>& distVec) {
+    return getVectorMagnitude(distVec);
 }
 
-vector<double> getForcesForObject(const vector<object>& objs, const size_t objectIndex) {
-    vector<double> forces = {0, 0, 0};
+vector<double> getForce(const vector<object>& objs, const size_t objectIndex) {
+    vector<double> force(3, 0);
     for (size_t i = 0; i < objs.size(); i++) {
         if (i == objectIndex) {
             continue;
         }
-        double distance = getDistanceBetweenObjects(objs[objectIndex], objs[i]);
-        double force = (G * objs[i].m * objs[objectIndex].m) / pow(distance, 2);
-        vector<double> distances = getDistanceByCoordinates(objs[objectIndex], objs[i]);
-        forces[0] += force * (distances[0] / distance);
-        forces[1] += force * (distances[1] / distance);
-        forces[2] += force * (distances[2] / distance);
+        vector<double> r = getDistanceVector(objs[objectIndex], objs[i]);
+        double distance = getDistance(r);
+        force = sumVectorVector(force, multiplyNumberVector(G * objs[i].m * objs[objectIndex].m / pow(distance, 3), r)); // Law of Gravity
     }
-    return forces;
+    return force;
 }
 
-double explicitEulerForwardStep(const function <double(vector<double>)>& f, vector<double> args, double fromValue, double h) {
-    return fromValue + h * f(std::move(args)); // y'(x) = f(x,y)
+vector<double> getAcceleration(const vector<object>& objects, const size_t objectIndex) {
+    vector<double> force = getForce(objects, objectIndex);
+    vector<double> acceleration = multiplyNumberVector(1 / objects[objectIndex].m, force); // Newton's second law
+    return acceleration;
 }
 
-void dataOut(ofstream& out, const vector<double>& data) {
-    for (auto i : data) {
-        out << i << " ";
+
+// Computation methods
+double explicitEulerStep(const double& f, double fromValue, double h) {
+    return fromValue + h * f; // y'(x) = f
+}
+
+
+// Motion computation
+
+void compByExplicitEuler(vector<object>& objects, double& t, const double& timeEnd, const double& timeStep, vector<ofstream>& dataFiles) {
+    while (t < timeEnd) {
+        for (size_t i = 0; i < objects.size(); i++) {
+            objects[i].acceleration = getAcceleration(objects, i);
+
+            for (int j = 0; j < objects[i].velocity.size(); j++) {
+                objects[i].velocity[j] = explicitEulerStep(objects[i].acceleration[j], objects[i].velocity[j],timeStep);
+            }
+
+            for (int j = 0; j < objects[i].coordinates.size(); j++) {
+                objects[i].coordinates[j] = explicitEulerStep(objects[i].velocity[j], objects[i].coordinates[j],timeStep);
+            }
+        }
+
+        t += timeStep;
+
+        dataOut(objects, dataFiles);
     }
-    out << endl;
 }
 
 int main() {
@@ -94,45 +179,32 @@ int main() {
     object Earth;
     Earth.m = MASS_OF_EARTH;
     Earth.coordinates = {ASTRONOMICAL_UNIT, 0, 0};
-    Earth.velocities = {0, EARTH_VELOCITY, 0};
+    Earth.velocity = {0, EARTH_VELOCITY, 0};
     // All objects
     vector<object> objects;
     objects.push_back(Sun);
     objects.push_back(Earth);
 
-    ofstream EarthFile;
-    EarthFile.open("Earth.txt");
 
-    ofstream Forces;
-    Forces.open("Forces.txt");
+    vector<ofstream> dataFiles(objects.size());
+
+    for(size_t i = 0; i < objects.size(); i++) {
+        dataFiles[i].open(to_string(i) + ".txt");
+    }
+
 
     double t = 0;
 
-    do {
-        for (size_t i = 0; i < objects.size(); i++) {
-            objects[i].accelerations = getAccelerationsByForces(objects[i], getForcesForObject(objects, i));
-
-            for(int j = 0; j < objects[i].velocities.size(); j++) {
-                objects[i].velocities[j] = explicitEulerForwardStep([](vector<double> args) {
-                    return args[0];
-                }, vector<double> {objects[i].accelerations[j]}, objects[i].velocities[j], TIME_STEP);
-            }
-
-            for(int j = 0; j < objects[i].coordinates.size(); j++) {
-                objects[i].coordinates[j] = explicitEulerForwardStep([](vector<double> args) {
-                    return args[0];
-                }, vector<double> {objects[i].velocities[j]}, objects[i].coordinates[j], TIME_STEP);
-            }
-
-            dataOut(EarthFile, objects[1].coordinates);
-            dataOut(Forces, getForcesForObject(objects, 1));
-        }
-        t += TIME_STEP;
-    } while (t < TIME_END);
-
-    EarthFile.close();
-    Forces.close();
 
     system("chcp 65001"); // Fuck Windows
+
+
+    compByExplicitEuler(objects, t, TIME_END, TIME_STEP, dataFiles);
+
+
+    for(size_t i = 0; i < objects.size(); i++) {
+        dataFiles[i].close();
+    }
+
     return 0;
 }

@@ -4,7 +4,7 @@
 #define ASTRONOMICAL_UNIT 1.49597870700e11
 #define EARTH_VELOCITY 2.978e4
 #define TIME_STEP 3600
-#define TIME_END (365 * 24 * 3600)
+#define TIME_END (365.25 * 24 * 3600)
 #define G GRAVITATIONAL_CONSTANT
 
 #include <iostream>
@@ -147,21 +147,48 @@ double explicitEulerStep(const double& f, double fromValue, double h) {
     return fromValue + h * f; // y'(x) = f
 }
 
+double correctorStep(const double& prediction, const double& f, double fromValue, double h) {
+    return fromValue + (1. / 2) * h * (prediction + f);
+}
 
-// Motion computation
 
-void compByExplicitEuler(vector<object>& objects, double& t, const double& timeEnd, const double& timeStep, vector<ofstream>& dataFiles) {
+// Motion step computers
+void compByExplicitEulerStep(vector<object>& objects, const size_t& objectIndex, const double& timeStep) {
+    objects[objectIndex].acceleration = getAcceleration(objects, objectIndex);
+
+    for (int j = 0; j < objects[objectIndex].velocity.size(); j++) {
+        objects[objectIndex].velocity[j] = explicitEulerStep(objects[objectIndex].acceleration[j], objects[objectIndex].velocity[j], timeStep);
+    }
+
+    for (int j = 0; j < objects[objectIndex].coordinates.size(); j++) {
+        objects[objectIndex].coordinates[j] = explicitEulerStep(objects[objectIndex].velocity[j], objects[objectIndex].coordinates[j], timeStep);
+    }
+}
+
+void compByPredictorCorrectorStep(vector<object>& objects, const size_t& objectIndex, const double& timeStep) {
+    object originObject = objects[objectIndex];
+
+    // Prediction calculation
+    compByExplicitEulerStep(objects, objectIndex, timeStep);
+    originObject.acceleration = objects[objectIndex].acceleration; // Avoiding double calculation
+
+    // Corrector step
+    for (int j = 0; j < objects[objectIndex].velocity.size(); j++) {
+        originObject.velocity[j] = correctorStep(objects[objectIndex].acceleration[j], originObject.acceleration[j], originObject.velocity[j], timeStep);
+    }
+
+    for (int j = 0; j < objects[objectIndex].coordinates.size(); j++) {
+        originObject.coordinates[j] = correctorStep(objects[objectIndex].velocity[j], originObject.velocity[j], originObject.coordinates[j], timeStep);
+    }
+    objects[objectIndex] = originObject;
+}
+
+
+// Motion computer
+void compBy(const function<void(vector<object>&, const size_t&, const double&)>& computer, vector<object>& objects, double& t, const double& timeEnd, const double& timeStep, vector<ofstream>& dataFiles) {
     while (t < timeEnd) {
         for (size_t i = 0; i < objects.size(); i++) {
-            objects[i].acceleration = getAcceleration(objects, i);
-
-            for (int j = 0; j < objects[i].velocity.size(); j++) {
-                objects[i].velocity[j] = explicitEulerStep(objects[i].acceleration[j], objects[i].velocity[j],timeStep);
-            }
-
-            for (int j = 0; j < objects[i].coordinates.size(); j++) {
-                objects[i].coordinates[j] = explicitEulerStep(objects[i].velocity[j], objects[i].coordinates[j],timeStep);
-            }
+            computer(objects, i, timeStep);
         }
 
         t += timeStep;
@@ -169,6 +196,7 @@ void compByExplicitEuler(vector<object>& objects, double& t, const double& timeE
         dataOut(objects, dataFiles);
     }
 }
+
 
 int main() {
     // Object initialising
@@ -185,7 +213,6 @@ int main() {
     objects.push_back(Sun);
     objects.push_back(Earth);
 
-
     vector<ofstream> dataFiles(objects.size());
 
     for(size_t i = 0; i < objects.size(); i++) {
@@ -199,7 +226,7 @@ int main() {
     system("chcp 65001"); // Fuck Windows
 
 
-    compByExplicitEuler(objects, t, TIME_END, TIME_STEP, dataFiles);
+    compBy(compByPredictorCorrectorStep,objects, t, TIME_END, TIME_STEP, dataFiles);
 
 
     for(size_t i = 0; i < objects.size(); i++) {

@@ -4,7 +4,7 @@
 #define ASTRONOMICAL_UNIT 1.49597870700e11
 #define EARTH_VELOCITY 2.978e4
 #define TIME_STEP 3600
-#define TIME_END (365.25 * 24 * 3600)
+#define TIME_END (100 * 365.25 * 24 * 3600)
 #define G GRAVITATIONAL_CONSTANT
 
 #include <iostream>
@@ -24,18 +24,6 @@ struct object {
     vector<double> acceleration = {0, 0, 0};
 };
 
-void dataWriter(ofstream& out, const vector<double>& data) {
-    for (auto i : data) {
-        out << i << " ";
-    }
-    out << endl;
-}
-
-void dataOut(const vector<object>& objects, vector<ofstream>& dataFiles) {
-    for (size_t i = 0; i < dataFiles.size(); i++) {
-        dataWriter(dataFiles[i], objects[i].coordinates);
-    }
-}
 
 double degToRad(double degrees) {
     return degrees * (M_PI / 180);
@@ -112,6 +100,21 @@ double getProjection(const vector<double>& a, const vector<double>& b) {
 }
 
 
+// Service methods
+void dataWriter(ofstream& out, const vector<double>& data) {
+    for (auto i : data) {
+        out << i << " ";
+    }
+    out << endl;
+}
+
+void dataOut(const vector<object>& objects, vector<ofstream>& dataFiles) {
+    for (size_t i = 0; i < objects.size(); i++) {
+        dataWriter(dataFiles[i], objects[i].coordinates);
+    }
+}
+
+
 // Methods for bodies
 vector<double> getDistanceVector(const object& obj1, const object& obj2) {
     vector<double> distances = differenceVectorVector(obj2.coordinates, obj1.coordinates);
@@ -139,6 +142,37 @@ vector<double> getAcceleration(const vector<object>& objects, const size_t objec
     vector<double> force = getForce(objects, objectIndex);
     vector<double> acceleration = multiplyNumberVector(1 / objects[objectIndex].m, force); // Newton's second law
     return acceleration;
+}
+
+double getGravitationalPotential (const vector<object>& objects,const vector<double>& coordinates, const size_t& excludeObjectIndex = -1) {
+    double potential = 0;
+    object point;
+    point.coordinates = coordinates;
+    for (size_t i = 0; i < objects.size(); i++) {
+        if (i == excludeObjectIndex) {
+            continue;
+        }
+        potential += -(G * objects[i].m) / getVectorMagnitude(getDistanceVector(objects[i], point));
+    }
+    return potential;
+}
+
+double getKineticEnergy(const object& obj) {
+    return (obj.m * pow(getVectorMagnitude(obj.velocity), 2)) / 2;
+}
+
+double getPotentialEnergy(const vector<object>& objects, const size_t& objectIndex) {
+    return objects[objectIndex].m * getGravitationalPotential(objects, objects[objectIndex].coordinates, objectIndex);
+}
+
+double getTotalEnergy(const vector<object>& objects) {
+    double energy = 0;
+    for(size_t i = 0; i < objects.size(); i++) {
+        energy += getKineticEnergy(objects[i]); // Kinetic energy
+        energy += (1. / 2) * getPotentialEnergy(objects, i); // Potential Energy
+    }
+
+    return energy;
 }
 
 
@@ -184,7 +218,7 @@ void compByPredictorCorrectorStep(vector<object>& objects, const size_t& objectI
 }
 
 
-// Motion computer
+// Motion computers
 void compBy(const function<void(vector<object>&, const size_t&, const double&)>& computer, vector<object>& objects, double& t, const double& timeEnd, const double& timeStep, vector<ofstream>& dataFiles) {
     while (t < timeEnd) {
         for (size_t i = 0; i < objects.size(); i++) {
@@ -194,8 +228,44 @@ void compBy(const function<void(vector<object>&, const size_t&, const double&)>&
         t += timeStep;
 
         dataOut(objects, dataFiles);
+        dataWriter(dataFiles[objects.size()], vector<double> {t, getTotalEnergy(objects)});
     }
 }
+
+void compByLeapFrog(vector<object>& objects,  double& t, const double& timeEnd, const double& timeStep, vector<ofstream>& dataFiles) {
+    if (t < timeEnd) {
+        for (size_t i = 0; i < objects.size(); i++) {
+            objects[i].acceleration = getAcceleration(objects, i);
+            for (size_t j = 0; j < objects[i].velocity.size(); j++) {
+                objects[i].velocity[j] = explicitEulerStep(objects[i].acceleration[j], objects[i].velocity[j], timeStep / 2);
+            }
+        } // Get V(i+1/2) (First step)
+
+        while (t < timeEnd) {
+            for (size_t i = 0; i < objects.size(); i++) {
+                for (size_t j = 0; j < objects[i].coordinates.size(); j++) {
+                    objects[i].coordinates[j] = explicitEulerStep(objects[i].velocity[j], objects[i].coordinates[j], timeStep);
+                } // Get X(i+1)
+                objects[i].acceleration = getAcceleration(objects, i);
+                for (size_t j = 0; j < objects[i].velocity.size(); j++) {
+                    objects[i].velocity[j] = explicitEulerStep(objects[i].acceleration[j], objects[i].velocity[j], timeStep);
+                } // Get V(i+1/2)
+            }
+
+            t += timeStep;
+
+            dataOut(objects, dataFiles);
+            dataWriter(dataFiles[objects.size()], vector<double> {t, getTotalEnergy(objects)});
+        }
+
+        for (auto & object : objects) {
+            for (size_t j = 0; j < object.velocity.size(); j++) {
+                object.velocity[j] = explicitEulerStep(-object.acceleration[j], object.velocity[j], timeStep / 2);
+            }
+        } // Get V(i)
+    }
+}
+
 
 
 int main() {
@@ -213,11 +283,13 @@ int main() {
     objects.push_back(Sun);
     objects.push_back(Earth);
 
-    vector<ofstream> dataFiles(objects.size());
+    vector<ofstream> dataFiles(objects.size() + 1);
 
     for(size_t i = 0; i < objects.size(); i++) {
         dataFiles[i].open(to_string(i) + ".txt");
     }
+    dataFiles[objects.size()].open("energy100yLF1h.txt");
+
 
 
     double t = 0;
@@ -226,8 +298,8 @@ int main() {
     system("chcp 65001"); // Fuck Windows
 
 
-    compBy(compByPredictorCorrectorStep,objects, t, TIME_END, TIME_STEP, dataFiles);
-
+    compByLeapFrog(objects, t, TIME_END, TIME_STEP, dataFiles);
+//    compBy(compByExplicitEulerStep, objects, t, TIME_END, TIME_STEP, dataFiles);
 
     for(size_t i = 0; i < objects.size(); i++) {
         dataFiles[i].close();

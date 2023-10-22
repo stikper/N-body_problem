@@ -4,7 +4,7 @@
 #define ASTRONOMICAL_UNIT 1.49597870700e11
 #define EARTH_VELOCITY 2.978e4
 #define TIME_STEP 3600
-#define TIME_END (100 * 365.25 * 24 * 3600)
+#define TIME_END (15 * 365.25 * 24 * 3600)
 #define G GRAVITATIONAL_CONSTANT
 
 #include <iostream>
@@ -12,12 +12,14 @@
 #include <cmath>
 #include <utility>
 #include <vector>
+#include <string>
 #include <fstream>
 #include <functional>
 
 using namespace std;
 
 struct object {
+    string name;
     double m = 1; //Mass
     vector<double> coordinates = {0, 0, 0};
     vector<double> velocity = {0, 0, 0};
@@ -34,7 +36,7 @@ double radToDeg(double radians) {
 }
 
 
-// Methods for vectors
+// Methods for vectors and matrix
 double getVectorMagnitude(const vector<double>& a) {
     double sumOfSquares = 0;
     for (auto i : a) {
@@ -97,6 +99,66 @@ vector<double> crossProduct(vector<double> a, vector<double> b) {
 
 double getProjection(const vector<double>& a, const vector<double>& b) {
     return dotProduct(a, b) / getVectorMagnitude(b);
+}
+
+vector<double> multiplyMatrixVector(const vector<vector<double>>& A,const vector<double>& b) {
+    size_t rows = A.size();
+    size_t cols = A[0].size();
+    vector<double> result(cols, 0.0);
+
+    for (size_t i = 0; i < rows; i++) {
+        for (size_t j = 0; j < cols; j++) {
+            result[i] += A[i][j] * b[j];
+        }
+    }
+
+    return result;
+}
+
+vector<double> rotateVectorByX(const vector<double>& vec,const double& angle = 0) {
+    vector<vector<double>> rot(3, vector<double>(3, 0)); // Rotation matrix
+    rot = {{1, 0, 0},
+           {0, cos(angle), -sin(angle)},
+           {0, sin(angle), cos(angle)}};
+    return multiplyMatrixVector(rot, vec);
+}
+
+vector<double> rotateVectorByY(const vector<double>& vec,const double& angle = 0) {
+    vector<vector<double>> rot(3, vector<double>(3, 0)); // Rotation matrix
+    rot = {{cos(angle), 0, sin(angle)},
+           {0, 1, 0},
+           {-sin(angle), 0, cos(angle)}};
+    return multiplyMatrixVector(rot, vec);
+}
+
+vector<double> rotateVectorByZ(const vector<double>& vec,const double& angle = 0) {
+    vector<vector<double>> rot(3, vector<double>(3, 0)); // Rotation matrix
+    rot = {{cos(angle), -sin(angle), 0},
+           {sin(angle), cos(angle), 0},
+           {0, 0, 1}};
+    return multiplyMatrixVector(rot, vec);
+}
+
+
+//Methods for changing coordinate system
+vector<double> coordsToCart(const double& r = 0, const double& theta = 0, const double& phi = 0) {
+    vector<double> coords(3, 0.0);
+    coords[0] = r * sin(theta) * cos(phi);
+    coords[1] = r * sin(theta) * sin(phi);
+    coords[2] = r * cos(theta);
+    return coords;
+}
+
+vector<double> velocitiesToCart(const double& theta, const double& phi, const double& v_r = 0, const double& v_theta = 0, const double& v_phi = 0) {
+    vector<double> velocities(3, 0.0);
+    // Axes: r -> z, phi -> y, theta -> x
+    velocities[0] = v_theta; // Axis theta
+    velocities[1] = v_phi; // Axis phi
+    velocities[2] = v_r; // Axis r
+    // Rotate to x, y, z axes
+    rotateVectorByY(velocities, theta); // r to z
+    rotateVectorByZ(velocities, phi); // theta to x (phi to y)
+    return velocities;
 }
 
 
@@ -272,23 +334,33 @@ int main() {
     // Object initialising
     // Sun
     object Sun;
+    Sun.name = "Sun";
     Sun.m = MASS_OF_SUN;
     // Earth
     object Earth;
+    Earth.name = "Earth";
     Earth.m = MASS_OF_EARTH;
     Earth.coordinates = {ASTRONOMICAL_UNIT, 0, 0};
     Earth.velocity = {0, EARTH_VELOCITY, 0};
+    // Body
+    object Body;
+    Body.name = "Body";
+    Body.m = 0.000955 * MASS_OF_SUN;
+    Body.coordinates = coordsToCart(19.988409, 1.941617, 4.341507);
+    Body.velocity = velocitiesToCart(1.941617, 4.341507, -1.720970, 0.702991, 0.702991);
+    Body.coordinates = multiplyNumberVector(ASTRONOMICAL_UNIT, Body.coordinates);
+    Body.velocity = multiplyNumberVector(ASTRONOMICAL_UNIT / (365.25 * 24 * 3600), Body.velocity);
     // All objects
     vector<object> objects;
     objects.push_back(Sun);
-    objects.push_back(Earth);
+    objects.push_back(Body);
 
     vector<ofstream> dataFiles(objects.size() + 1);
 
     for(size_t i = 0; i < objects.size(); i++) {
-        dataFiles[i].open(to_string(i) + ".txt");
+        dataFiles[i].open(objects[i].name + ".txt");
     }
-    dataFiles[objects.size()].open("energy100yLF1h.txt");
+    dataFiles[objects.size()].open("total_energy.txt");
 
 
 
@@ -298,10 +370,10 @@ int main() {
     system("chcp 65001"); // Fuck Windows
 
 
-    compByLeapFrog(objects, t, TIME_END, TIME_STEP, dataFiles);
-//    compBy(compByExplicitEulerStep, objects, t, TIME_END, TIME_STEP, dataFiles);
+//    compByLeapFrog(objects, t, TIME_END, TIME_STEP, dataFiles);
+    compBy(compByExplicitEulerStep, objects, t, TIME_END, TIME_STEP, dataFiles);
 
-    for(size_t i = 0; i < objects.size(); i++) {
+    for (size_t i = 0; i < objects.size(); i++) {
         dataFiles[i].close();
     }
 

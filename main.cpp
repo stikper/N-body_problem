@@ -4,7 +4,7 @@
 #define ASTRONOMICAL_UNIT 1.49597870700e11
 #define EARTH_VELOCITY 2.978e4
 #define TIME_STEP 3600
-#define TIME_END (15 * 365.25 * 24 * 3600)
+#define TIME_END (30 * 365.25 * 24 * 3600)
 #define G GRAVITATIONAL_CONSTANT
 
 #include <iostream>
@@ -248,46 +248,19 @@ double correctorStep(const double& prediction, const double& f, double fromValue
 }
 
 
-// Motion step computers
-void compByExplicitEulerStep(vector<object>& objects, const size_t& objectIndex, const double& timeStep) {
-    objects[objectIndex].acceleration = getAcceleration(objects, objectIndex);
-
-    for (int j = 0; j < objects[objectIndex].velocity.size(); j++) {
-        objects[objectIndex].velocity[j] = explicitEulerStep(objects[objectIndex].acceleration[j], objects[objectIndex].velocity[j], timeStep);
-    }
-
-    for (int j = 0; j < objects[objectIndex].coordinates.size(); j++) {
-        objects[objectIndex].coordinates[j] = explicitEulerStep(objects[objectIndex].velocity[j], objects[objectIndex].coordinates[j], timeStep);
-    }
-}
-
-void compByPredictorCorrectorStep(vector<object>& objects, const size_t& objectIndex, const double& timeStep) {
-    object originObject = objects[objectIndex];
-
-    // Prediction calculation
-    compByExplicitEulerStep(objects, objectIndex, timeStep);
-    originObject.acceleration = objects[objectIndex].acceleration; // Avoiding double calculation
-
-    // Corrector step
-    for (int j = 0; j < objects[objectIndex].velocity.size(); j++) {
-        originObject.velocity[j] = correctorStep(objects[objectIndex].acceleration[j], originObject.acceleration[j], originObject.velocity[j], timeStep);
-    }
-
-    for (int j = 0; j < objects[objectIndex].coordinates.size(); j++) {
-        originObject.coordinates[j] = correctorStep(objects[objectIndex].velocity[j], originObject.velocity[j], originObject.coordinates[j], timeStep);
-    }
-    objects[objectIndex] = originObject;
-}
-
-
 // Motion computers
-void compBy(const function<void(vector<object>&, const size_t&, const double&)>& computer, vector<object>& objects, double& t, const double& timeEnd, const double& timeStep, vector<ofstream>& dataFiles) {
+void compBy(const function<object(vector<object>&, const size_t&, const double&)>& computer, vector<object>& objects, double& t, const double& timeEnd, const double& timeStep, vector<ofstream>& dataFiles) {
     while (t < timeEnd) {
+        vector<object> newBodies;
         for (size_t i = 0; i < objects.size(); i++) {
-            computer(objects, i, timeStep);
+            newBodies.push_back(computer(objects, i, timeStep));
         }
 
         t += timeStep;
+
+        for (size_t i = 0; i < objects.size(); i++) {
+            objects[i] = newBodies[i];
+        }
 
         dataOut(objects, dataFiles);
         dataWriter(dataFiles[objects.size()], vector<double> {t, getTotalEnergy(objects)});
@@ -329,6 +302,24 @@ void compByLeapFrog(vector<object>& objects,  double& t, const double& timeEnd, 
 }
 
 
+// Motion step computers
+object compByExplicitEulerStep(vector<object>& objects, const size_t& objectIndex, const double& timeStep) {
+    objects[objectIndex].acceleration = getAcceleration(objects, objectIndex);
+
+    object Body = objects[objectIndex];
+
+    for (int j = 0; j < Body.velocity.size(); j++) {
+        Body.velocity[j] = explicitEulerStep(Body.acceleration[j], Body.velocity[j], timeStep);
+    }
+
+    for (int j = 0; j < Body.coordinates.size(); j++) {
+        Body.coordinates[j] = explicitEulerStep(Body.velocity[j], Body.coordinates[j], timeStep);
+    }
+
+    return Body;
+}
+
+
 
 int main() {
     // Object initialising
@@ -343,17 +334,17 @@ int main() {
     Earth.coordinates = {ASTRONOMICAL_UNIT, 0, 0};
     Earth.velocity = {0, EARTH_VELOCITY, 0};
     // Body
-    object Body;
-    Body.name = "Body";
-    Body.m = 0.000955 * MASS_OF_SUN;
-    Body.coordinates = coordsToCart(19.988409, 1.941617, 4.341507);
-    Body.velocity = velocitiesToCart(1.941617, 4.341507, -1.720970, 0.702991, 0.702991);
-    Body.coordinates = multiplyNumberVector(ASTRONOMICAL_UNIT, Body.coordinates);
-    Body.velocity = multiplyNumberVector(ASTRONOMICAL_UNIT / (365.25 * 24 * 3600), Body.velocity);
+//    object Body;
+//    Body.name = "Body";
+//    Body.m = 0.000955 * MASS_OF_SUN;
+//    Body.coordinates = coordsToCart(19.988409, 1.941617, 4.341507);
+//    Body.velocity = velocitiesToCart(1.941617, 4.341507, -1.720970, 0.702991, 0.702991);
+//    Body.coordinates = multiplyNumberVector(ASTRONOMICAL_UNIT, Body.coordinates);
+//    Body.velocity = multiplyNumberVector(ASTRONOMICAL_UNIT / (365.25 * 24 * 3600), Body.velocity);
     // All objects
     vector<object> objects;
     objects.push_back(Sun);
-    objects.push_back(Body);
+    objects.push_back(Earth);
 
     vector<ofstream> dataFiles(objects.size() + 1);
 
@@ -369,7 +360,8 @@ int main() {
 
     system("chcp 65001"); // Fuck Windows
 
-
+    dataOut(objects, dataFiles);
+    dataWriter(dataFiles[objects.size()], vector<double> {t, getTotalEnergy(objects)});
 //    compByLeapFrog(objects, t, TIME_END, TIME_STEP, dataFiles);
     compBy(compByExplicitEulerStep, objects, t, TIME_END, TIME_STEP, dataFiles);
 

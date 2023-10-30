@@ -30,6 +30,15 @@ std::vector<double> getAcceleration(const std::vector<body>& bodies, const size_
     return acceleration;
 }
 
+std::vector<body> getAccelForAll(const std::vector<body>& bodies) {
+    std::vector<body> result;
+    for (size_t i = 0; i < bodies.size(); i++) {
+        result.push_back(bodies[i]);
+        result[i].acceleration = getAcceleration(bodies, i);
+    }
+    return result;
+}
+
 double getGravitationalPotential (const std::vector<body>& bodies,const std::vector<double>& coordinates, const size_t& excludeBodyIndex = -1) {
     double potential = 0;
     body point;

@@ -2,7 +2,7 @@
 #define MASS_OF_EARTH 5.9722e24
 #define ASTRONOMICAL_UNIT 1.49597870700e11
 #define EARTH_VELOCITY 2.978e4
-#define TIME_STEP 3600
+#define TIME_STEP 360
 #define TIME_END (30 * 365.25 * 24 * 3600)
 
 
@@ -21,18 +21,18 @@ using namespace std;
 
 int main() {
     // Object initialising
-    // Sun
+        // Sun
     body Sun;
     Sun.name = "Sun";
     Sun.m = MASS_OF_SUN;
-    // Earth
+        // Earth
     body Earth;
     Earth.name = "Earth";
     Earth.m = MASS_OF_EARTH;
     Earth.coordinates = {ASTRONOMICAL_UNIT, 0, 0};
     Earth.velocity = {0, EARTH_VELOCITY, 0};
-    // Body
-//    object Body;
+        // Body
+//    body Body;
 //    Body.name = "Body";
 //    Body.m = 0.000955 * MASS_OF_SUN;
 //    Body.coordinates = coordsToCart(19.988409, 1.941617, 4.341507);
@@ -43,6 +43,8 @@ int main() {
     vector<body> bodies;
     bodies.push_back(Sun);
     bodies.push_back(Earth);
+    bodies.push_back(Body);
+    bodies = getAccelForAll(bodies);
 
     vector<ofstream> dataFiles(bodies.size() + 1);
 
@@ -51,17 +53,14 @@ int main() {
     }
     dataFiles[bodies.size()].open("total_energy.txt");
 
-
-
     double t = 0;
-
 
     system("chcp 65001"); // Fuck Windows
 
     dataOut(bodies, dataFiles);
     dataWriter(dataFiles[bodies.size()], vector<double> {t, getTotalEnergy(bodies)});
 //    compByLeapFrog(bodies, t, TIME_END, TIME_STEP, dataFiles);
-    compBy(compByExplicitEulerStep, bodies, t, TIME_END, TIME_STEP, dataFiles);
+    bodies = comp(ByEulerStep, bodies, t, TIME_END, TIME_STEP, dataFiles);
 
     for (size_t i = 0; i < bodies.size(); i++) {
         dataFiles[i].close();

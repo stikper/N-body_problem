@@ -24,6 +24,8 @@ std::vector<double> getForce(const std::vector<body>& bodies,const size_t& bodyI
 
 std::vector<double> getAcceleration(const std::vector<body>& bodies,const size_t& bodyIndex);
 
+std::vector<body> getAccelForAll(const std::vector<body>& bodies);
+
 double getGravitationalPotential (const std::vector<body>& bodies,const std::vector<double>& coordinates, const size_t& excludeBodyIndex);
 
 double getKineticEnergy(const body& obj);

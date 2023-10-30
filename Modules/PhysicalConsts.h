@@ -1,0 +1,8 @@
+#ifndef CONSTS_H
+#define CONSTS_H
+
+
+#define GRAVITATIONAL_CONSTANT 6.67430e-11
+#define G GRAVITATIONAL_CONSTANT
+
+#endif //CONSTS_H

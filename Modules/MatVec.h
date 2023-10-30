@@ -1,3 +1,4 @@
+#pragma once
 #ifndef MATVEC_H
 #define MATVEC_H
 

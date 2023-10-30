@@ -2,7 +2,7 @@
 #define MASS_OF_EARTH 5.9722e24
 #define ASTRONOMICAL_UNIT 1.49597870700e11
 #define EARTH_VELOCITY 2.978e4
-#define TIME_STEP 360
+#define TIME_STEP (3600)
 #define TIME_END (30 * 365.25 * 24 * 3600)
 
 
@@ -43,7 +43,6 @@ int main() {
     vector<body> bodies;
     bodies.push_back(Sun);
     bodies.push_back(Earth);
-    bodies.push_back(Body);
     bodies = getAccelForAll(bodies);
 
     vector<ofstream> dataFiles(bodies.size() + 1);
@@ -60,7 +59,7 @@ int main() {
     dataOut(bodies, dataFiles);
     dataWriter(dataFiles[bodies.size()], vector<double> {t, getTotalEnergy(bodies)});
 //    compByLeapFrog(bodies, t, TIME_END, TIME_STEP, dataFiles);
-    bodies = comp(ByEulerStep, bodies, t, TIME_END, TIME_STEP, dataFiles);
+    comp(ByRK4, bodies, t, TIME_END, TIME_STEP, dataFiles);
 
     for (size_t i = 0; i < bodies.size(); i++) {
         dataFiles[i].close();

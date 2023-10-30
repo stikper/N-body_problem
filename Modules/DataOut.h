@@ -1,3 +1,4 @@
+#pragma once
 #ifndef DATAOUT_H
 #define DATAOUT_H
 

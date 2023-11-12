@@ -1,0 +1,23 @@
+{
+  "config": {
+    "time_start": 0,
+    "time_step": 86400,
+    "time_end": 946728000,
+    "method": "RK4"
+  },
+
+  "bodies": [
+    {
+      "name": "Sun",
+      "mass": 1.98847e30,
+      "coordinates": [0, 0, 0],
+      "velocity": [0, 0, 0]
+    },
+    {
+      "name": "Earth",
+      "mass": 5.9722e24,
+      "coordinates": [1.49597870700e11, 0, 0],
+      "velocity": [0, 2.978e4, 0]
+    }
+  ]
+}

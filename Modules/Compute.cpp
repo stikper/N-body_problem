@@ -114,7 +114,7 @@ std::vector<body> ByPredictorCorrector(const std::vector<body>& bodies, const do
     result.reserve(bodies.size());
 
     std::vector<body> k1 = bodies;
-    std::vector<body> k2 = ByEuler(k1, timeStep);
+    std::vector<body> k2 = EulerByDataOf(k1, k1, timeStep);
 
     for (size_t i = 0; i < bodies.size(); i++) {
         body Body = bodies[i];
@@ -161,7 +161,6 @@ std::vector<body> ByRK4(const std::vector<body>& bodies, const double& timeStep)
     std::vector<body> k4;
 
     k1 = bodies;
-//    k2 = ByEuler(k1, timeStep / 2);
     k2 = EulerByDataOf(k1, k1, timeStep / 2);
     k3 = EulerByDataOf(k2, k1, timeStep / 2);
     k4 = EulerByDataOf(k3, k1, timeStep);

@@ -4,6 +4,8 @@
 #define EARTH_VELOCITY 2.978e4
 #define TIME_STEP (3600)
 #define TIME_END (30 * 365.25 * 24 * 3600)
+#define METHOD ByEuler
+#define FILE_NAME "Eul"
 
 
 #include <iostream>
@@ -31,7 +33,7 @@ int main() {
     Earth.m = MASS_OF_EARTH;
     Earth.coordinates = {ASTRONOMICAL_UNIT, 0, 0};
     Earth.velocity = {0, EARTH_VELOCITY, 0};
-        // Body
+        //Body
 //    body Body;
 //    Body.name = "Body";
 //    Body.m = 0.000955 * MASS_OF_SUN;
@@ -48,7 +50,7 @@ int main() {
     vector<ofstream> dataFiles(bodies.size() + 1);
 
     for(size_t i = 0; i < bodies.size(); i++) {
-        dataFiles[i].open(bodies[i].name + ".txt");
+        dataFiles[i].open(bodies[i].name + FILE_NAME + ".txt");
     }
     dataFiles[bodies.size()].open("total_energy.txt");
 
@@ -59,7 +61,7 @@ int main() {
     dataOut(bodies, dataFiles);
     dataWriter(dataFiles[bodies.size()], vector<double> {t, getTotalEnergy(bodies)});
 //    compByLeapFrog(bodies, t, TIME_END, TIME_STEP, dataFiles);
-    comp(ByRK4, bodies, t, TIME_END, TIME_STEP, dataFiles);
+    comp(METHOD, bodies, t, TIME_END, TIME_STEP, dataFiles);
 
     for (size_t i = 0; i < bodies.size(); i++) {
         dataFiles[i].close();

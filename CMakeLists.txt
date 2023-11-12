@@ -10,6 +10,6 @@ add_executable(N-body_problem main.cpp
         Modules/DataOut.h
         Modules/Body.cpp
         Modules/Body.h
-        Modules/PhysicalConsts.h
+        Modules/Consts.h
         Modules/Compute.cpp
         Modules/Compute.h)

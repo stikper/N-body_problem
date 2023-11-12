@@ -1,11 +1,9 @@
-#define MASS_OF_SUN 1.98847e30
-#define MASS_OF_EARTH 5.9722e24
-#define ASTRONOMICAL_UNIT 1.49597870700e11
 #define EARTH_VELOCITY 2.978e4
-#define TIME_STEP (3600)
+#define TIME_STEP (3600 * 24 * 5)
 #define TIME_END (30 * 365.25 * 24 * 3600)
-#define METHOD ByEuler
-#define FILE_NAME "Eul"
+
+#define METHOD ByPredictorCorrector
+#define FILE_NAME "PC"
 
 
 #include <iostream>
@@ -61,7 +59,7 @@ int main() {
     dataOut(bodies, dataFiles);
     dataWriter(dataFiles[bodies.size()], vector<double> {t, getTotalEnergy(bodies)});
 //    compByLeapFrog(bodies, t, TIME_END, TIME_STEP, dataFiles);
-    comp(METHOD, bodies, t, TIME_END, TIME_STEP, dataFiles);
+     comp(METHOD, bodies, t, TIME_END, TIME_STEP, dataFiles);
 
     for (size_t i = 0; i < bodies.size(); i++) {
         dataFiles[i].close();

@@ -15,7 +15,7 @@ using namespace std;
 
 int main() {
     // The problem initialising
-    ifstream problemFile("../data.json");
+    ifstream problemFile("../Problems/data.json");
     json problem = json::parse(problemFile);
     json problemConfig = problem["config"];
     json problemBodies = problem["bodies"];

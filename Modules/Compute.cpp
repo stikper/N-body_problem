@@ -52,38 +52,24 @@ std::vector<body> comp(const std::function<std::vector<body>(std::vector<body>&,
     return result;
 }
 
-void compByLeapFrog(std::vector<body>& bodies,  double& t, const double& timeEnd, const double& timeStep, std::vector<std::ofstream>& dataFiles) {
-    if (t < timeEnd) {
-        for (size_t i = 0; i < bodies.size(); i++) {
-            bodies[i].acceleration = getAcceleration(bodies, i);
-            for (size_t j = 0; j < bodies[i].velocity.size(); j++) {
-                bodies[i].velocity[j] = eulerStep(bodies[i].acceleration[j], bodies[i].velocity[j], timeStep / 2);
-            }
-        } // Get V(i+1/2) (First step)
 
+
+std::vector<body> compByLF(const std::vector<body>& bodies, double& t, const double& timeEnd, const double& timeStep, std::vector<std::ofstream>& dataFiles) {
+    std::vector<body> result = bodies;
+    if (t < timeEnd) {
+        std::vector<body> LFBodies = ToLF(bodies, timeStep); // First step (Get V(i+h/2))
         while (t < timeEnd) {
-            for (size_t i = 0; i < bodies.size(); i++) {
-                for (size_t j = 0; j < bodies[i].coordinates.size(); j++) {
-                    bodies[i].coordinates[j] = eulerStep(bodies[i].velocity[j], bodies[i].coordinates[j], timeStep);
-                } // Get X(i+1)
-                bodies[i].acceleration = getAcceleration(bodies, i);
-                for (size_t j = 0; j < bodies[i].velocity.size(); j++) {
-                    bodies[i].velocity[j] = eulerStep(bodies[i].acceleration[j], bodies[i].velocity[j], timeStep);
-                } // Get V(i+1/2)
-            }
+            LFBodies = ByLF(LFBodies, timeStep);
 
             t += timeStep;
 
-            dataOut(bodies, dataFiles);
-            dataWriter(dataFiles[bodies.size()], std::vector<double> {t, getTotalEnergy(bodies)});
-        }
+            result = FromLF(LFBodies, timeStep); // Get V(i)
 
-        for (auto & object : bodies) {
-            for (size_t j = 0; j < object.velocity.size(); j++) {
-                object.velocity[j] = eulerStep(-object.acceleration[j], object.velocity[j], timeStep / 2);
-            }
-        } // Get V(i)
+            dataOut(result, dataFiles);
+            dataWriter(dataFiles[result.size()], std::vector<double> {t, getTotalEnergy(result)});
+        }
     }
+    return result;
 }
 
 
@@ -179,5 +165,41 @@ std::vector<body> ByRK4(const std::vector<body>& bodies, const double& timeStep)
     }
 
     result = getAccelForAll(result);
+    return result;
+}
+
+std::vector<body> ToLF(const std::vector<body>& bodies, const double& timeStep) {
+    std::vector<body> LFBodies = bodies;
+
+    for (auto & Body : LFBodies) {
+        Body.velocity = eulerVectorStep(Body.acceleration, Body.velocity, timeStep / 2);
+    }
+
+    return LFBodies;
+}
+
+std::vector<body> ByLF(const std::vector<body>& LFBodies, const double& timeStep) {
+    std::vector<body> result = LFBodies;
+
+    for (auto & Body : result) {
+        Body.coordinates = eulerVectorStep(Body.velocity, Body.coordinates, timeStep);
+    }
+
+    result = getAccelForAll(result);
+
+    for (auto & Body : result) {
+        Body.velocity = eulerVectorStep(Body.acceleration, Body.velocity, timeStep);
+    }
+
+    return result;
+}
+
+std::vector<body> FromLF(const std::vector<body>& LFBodies, const double& timeStep) {
+    std::vector<body> result = LFBodies;
+
+    for (auto & Body : result) {
+        Body.velocity = eulerVectorStep(Body.acceleration, Body.velocity, -(timeStep / 2));
+    }
+
     return result;
 }

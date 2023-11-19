@@ -24,7 +24,7 @@ std::vector<double> RK4VectorStep(const std::vector<double>& f1, const std::vect
 // Motion computers
 std::vector<body> comp(const std::function<std::vector<body>(std::vector<body>&, const double&)>& computer, const std::vector<body>& bodies, double& t, const double& timeEnd, const double& timeStep, std::vector<std::ofstream>& dataFiles);
 
-void compByLeapFrog(std::vector<body>& bodies,  double& t, const double& timeEnd, const double& timeStep, std::vector<std::ofstream>& dataFiles);
+std::vector<body> compByLF(const std::vector<body>& bodies, double& t, const double& timeEnd, const double& timeStep, std::vector<std::ofstream>& dataFiles);
 
 
 // Motion step computers
@@ -40,5 +40,11 @@ body EulerBodyByDataOf(const body& Data, body Body, const double& timeStep);
 std::vector<body> EulerByDataOf(const std::vector<body>& data, const std::vector<body>& bodies, const double& timeStep);
 
 std::vector<body> ByRK4(const std::vector<body>& bodies, const double& timeStep);
+
+std::vector<body> ToLF(const std::vector<body>& bodies, const double& timeStep);
+
+std::vector<body> ByLF(const std::vector<body>& bodies, const double& timeStep);
+
+std::vector<body> FromLF(const std::vector<body>& bodies, const double& timeStep);
 
 #endif //COMPUTE_H

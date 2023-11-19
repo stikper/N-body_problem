@@ -67,7 +67,7 @@ int main() {
     } else if (METHOD == "PC") {
         comp(ByPredictorCorrector, bodies, t, TIME_END, TIME_STEP, dataFiles);
     } else if (METHOD == "LF") {
-        compByLeapFrog(bodies, t, TIME_END, TIME_STEP, dataFiles);
+        compByLF(bodies, t, TIME_END, TIME_STEP, dataFiles);
     } else if (METHOD == "RK4") {
         comp(ByRK4, bodies, t, TIME_END, TIME_STEP, dataFiles);
     }

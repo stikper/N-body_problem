@@ -9,6 +9,7 @@ dataOut::dataOut(const std::vector<body>& bodies, const double& step, const std:
         _dataFiles.resize(_n + 1);
         _dataFiles[i].open("Data_output/" + bodies[i].name + "_" + method + ".txt");
     }
+    _dataFiles[_n].open("Data_output/total_energy_" + method + ".txt");
 }
 
 void dataOut::forceOut(const std::vector<body>& bodies, const double& t) {

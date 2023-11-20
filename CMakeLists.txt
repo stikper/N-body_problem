@@ -12,4 +12,6 @@ add_executable(N-body_problem main.cpp
         Modules/Body.h
         Modules/Consts.h
         Modules/Compute.cpp
-        Modules/Compute.h)
+        Modules/Compute.h
+        Modules/Problem.cpp
+        Modules/Problem.h)

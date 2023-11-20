@@ -4,7 +4,12 @@
     "time_step": 86400,
     "time_end": 946728000,
     "method": "LF",
-    "data_out_time_step": 86400
+    "data_out_time_step": 86400,
+    "step_decrease_factor": 1e-1,
+    "step_decrease_acceleration_trigger": 10,
+    "min_step": 60,
+    "step_increase_factor": 1e1,
+    "step_increase_acceleration_trigger": 1e-1
   },
 
   "bodies": [

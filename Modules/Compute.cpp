@@ -201,3 +201,22 @@ std::vector<body> FromLF(const std::vector<body>& LFBodies, const double& timeSt
 
     return result;
 }
+
+// Check if step reduction / increasing is necessary
+bool checkStep(const std::vector<body>& bodies, const std::vector<body>& result, double& timeStep) {
+    bool incTrig = false;
+    bool doNotInc = false;
+    bool decTrig = false;
+    for (size_t i = 0; i < bodies.size(); i++) {
+        double deltaVel = getVectorMagnitude(differenceVectorVector(result[i].velocity, bodies[i].velocity));
+        if (deltaVel >= 10) {
+            decTrig = true;
+        } else if (deltaVel <= 1e-1) {
+            incTrig = true;
+        } else {
+            doNotInc = true;
+        }
+    }
+    if(doNotInc) incTrig = false;
+    if(decTrig) incTrig = false;
+}

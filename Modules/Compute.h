@@ -6,6 +6,7 @@
 
 #include "Body.h"
 #include "DataOut.h"
+#include "Problem.h"
 
 
 // Computation methods
@@ -40,11 +41,14 @@ body EulerBodyByDataOf(const body& Data, body Body, const double& timeStep);
 std::vector<body> EulerByDataOf(const std::vector<body>& data, const std::vector<body>& bodies, const double& timeStep);
 
 std::vector<body> ByRK4(const std::vector<body>& bodies, const double& timeStep);
-
+    // Leap-Frog
 std::vector<body> ToLF(const std::vector<body>& bodies, const double& timeStep);
 
 std::vector<body> ByLF(const std::vector<body>& bodies, const double& timeStep);
 
 std::vector<body> FromLF(const std::vector<body>& bodies, const double& timeStep);
+
+// Check if step reduction / increasing is necessary
+bool checkStep(const std::vector<body>& bodies, const std::vector<body>& result, double& timeStep);
 
 #endif //COMPUTE_H

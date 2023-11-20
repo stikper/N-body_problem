@@ -51,18 +51,21 @@ std::vector<body> comp(const std::function<std::vector<body>(std::vector<body>&,
         switch (checkStep(result, newResult, problem)) {
             case -1:
                 if (timeStep == problem.MIN_STEP) {
+                    t += timeStep;
                     result = newResult;
                     break;
                 }
                 decreaseStep(timeStep, problem);
                 continue;
             case 1:
+                t += timeStep;
                 increaseStep(timeStep, problem);
+                result = newResult;
+                break;
             case 0:
+                t += timeStep;
                 result = newResult;
         }
-
-        t += timeStep;
 
         DataOut.Out(result, t);
     }
@@ -85,20 +88,24 @@ std::vector<body> compByLF(const std::vector<body>& bodies, double& t, const dou
             switch (checkStep(LFBodies, newLFBodies, problem)) {
                 case -1:
                     if (timeStep == problem.MIN_STEP) {
+                        t += timeStep;
                         LFBodies = newLFBodies;
+                        result = FromLF(LFBodies, timeStep); // Get V(i)
                         break;
                     }
                     decreaseStep(timeStep, problem);
                     continue;
                 case 1:
+                    LFBodies = newLFBodies;
+                    result = FromLF(LFBodies, timeStep); // Get V(i)
+                    t += timeStep;
                     increaseStep(timeStep, problem);
+                    break;
                 case 0:
                     LFBodies = newLFBodies;
+                    result = FromLF(LFBodies, timeStep); // Get V(i)
+                    t += timeStep;
             }
-
-            t += timeStep;
-
-            result = FromLF(LFBodies, timeStep); // Get V(i)
 
             DataOut.Out(result, t);
         }

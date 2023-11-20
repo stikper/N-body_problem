@@ -4,11 +4,11 @@
     "time_step": 17280,
     "time_end": 6.311e9,
     "method": "LF",
-    "data_out_time_step": 864000,
-    "step_decrease_factor": 1e-1,
+    "data_out_time_step": 86400,
+    "step_decrease_factor": 5e-1,
     "step_decrease_acceleration_trigger": 10,
-    "min_step": 60,
-    "step_increase_factor": 1e1,
+    "min_step": 3600,
+    "step_increase_factor": 5,
     "step_increase_acceleration_trigger": 1e-1
   },
 

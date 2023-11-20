@@ -23,9 +23,9 @@ double RK4Step(const double& f1, const double& f2, const double& f3, const doubl
 std::vector<double> RK4VectorStep(const std::vector<double>& f1, const std::vector<double>& f2, const std::vector<double>& f3, const std::vector<double>& f4, const std::vector<double>& yi, const double& h);
 
 // Motion computers
-std::vector<body> comp(const std::function<std::vector<body>(std::vector<body>&, const double&)>& computer, const std::vector<body>& bodies, double& t, const double& timeEnd, const double& timeStep, dataOut& DataOut);
+std::vector<body> comp(const std::function<std::vector<body>(std::vector<body>&, const double&)>& computer, const std::vector<body>& bodies, double& t, const double& timeEnd, const Problem& problem, dataOut& DataOut);
 
-std::vector<body> compByLF(const std::vector<body>& bodies, double& t, const double& timeEnd, const double& timeStep, dataOut& DataOut);
+std::vector<body> compByLF(const std::vector<body>& bodies, double& t, const double& timeEnd, const Problem& problem, dataOut& DataOut);
 
 
 // Motion step computers
@@ -49,6 +49,10 @@ std::vector<body> ByLF(const std::vector<body>& bodies, const double& timeStep);
 std::vector<body> FromLF(const std::vector<body>& bodies, const double& timeStep);
 
 // Check if step reduction / increasing is necessary
-bool checkStep(const std::vector<body>& bodies, const std::vector<body>& result, double& timeStep);
+int checkStep(const std::vector<body> &bodies, const std::vector<body> &result, const Problem& problem);
+
+void increaseStep(double& timeStep, const Problem& problem);
+
+void decreaseStep(double& timeStep, const Problem& problem);
 
 #endif //COMPUTE_H

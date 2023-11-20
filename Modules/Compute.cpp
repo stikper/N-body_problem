@@ -39,10 +39,28 @@ std::vector<double> RK4VectorStep(const std::vector<double>& f1, const std::vect
 
 
 // Motion computers
-std::vector<body> comp(const std::function<std::vector<body>(std::vector<body>&, const double&)>& computer, const std::vector<body>& bodies, double& t, const double& timeEnd, const double& timeStep, dataOut& DataOut) {
+std::vector<body> comp(const std::function<std::vector<body>(std::vector<body>&, const double&)>& computer, const std::vector<body>& bodies, double& t, const double& timeEnd, const Problem& problem, dataOut& DataOut) {
     std::vector<body> result = bodies;
+    std::vector<body> newResult;
+    newResult.reserve(result.size());
+
+    double timeStep = problem.TIME_STEP;
     while (t < timeEnd) {
-        result = computer(result, timeStep);
+        newResult = computer(result, timeStep);
+
+        switch (checkStep(result, newResult, problem)) {
+            case -1:
+                if (timeStep == problem.MIN_STEP) {
+                    result = newResult;
+                    break;
+                }
+                decreaseStep(timeStep, problem);
+                continue;
+            case 1:
+                increaseStep(timeStep, problem);
+            case 0:
+                result = newResult;
+        }
 
         t += timeStep;
 
@@ -53,12 +71,30 @@ std::vector<body> comp(const std::function<std::vector<body>(std::vector<body>&,
 
 
 
-std::vector<body> compByLF(const std::vector<body>& bodies, double& t, const double& timeEnd, const double& timeStep, dataOut& DataOut) {
+std::vector<body> compByLF(const std::vector<body>& bodies, double& t, const double& timeEnd, const Problem& problem, dataOut& DataOut) {
     std::vector<body> result = bodies;
+    std::vector<body> newLFBodies;
+    newLFBodies.reserve(bodies.size());
+
+    double timeStep = problem.TIME_STEP;
     if (t < timeEnd) {
         std::vector<body> LFBodies = ToLF(bodies, timeStep); // First step (Get V(i+h/2))
         while (t < timeEnd) {
-            LFBodies = ByLF(LFBodies, timeStep);
+            newLFBodies = ByLF(LFBodies, timeStep);
+
+            switch (checkStep(LFBodies, newLFBodies, problem)) {
+                case -1:
+                    if (timeStep == problem.MIN_STEP) {
+                        LFBodies = newLFBodies;
+                        break;
+                    }
+                    decreaseStep(timeStep, problem);
+                    continue;
+                case 1:
+                    increaseStep(timeStep, problem);
+                case 0:
+                    LFBodies = newLFBodies;
+            }
 
             t += timeStep;
 
@@ -202,16 +238,16 @@ std::vector<body> FromLF(const std::vector<body>& LFBodies, const double& timeSt
     return result;
 }
 
-// Check if step reduction / increasing is necessary
-bool checkStep(const std::vector<body>& bodies, const std::vector<body>& result, double& timeStep) {
+// Check if step decreasing / increasing is necessary
+int checkStep(const std::vector<body>& bodies, const std::vector<body>& result, const Problem& problem) {
     bool incTrig = false;
     bool doNotInc = false;
     bool decTrig = false;
     for (size_t i = 0; i < bodies.size(); i++) {
         double deltaVel = getVectorMagnitude(differenceVectorVector(result[i].velocity, bodies[i].velocity));
-        if (deltaVel >= 10) {
+        if (deltaVel >= problem.STEP_DECREASE_ACCELERATION_TRIGGER) {
             decTrig = true;
-        } else if (deltaVel <= 1e-1) {
+        } else if (deltaVel <= problem.STEP_INCREASE_ACCELERATION_TRIGGER) {
             incTrig = true;
         } else {
             doNotInc = true;
@@ -219,4 +255,24 @@ bool checkStep(const std::vector<body>& bodies, const std::vector<body>& result,
     }
     if(doNotInc) incTrig = false;
     if(decTrig) incTrig = false;
+
+    if (incTrig) return 1;
+    if (decTrig) return -1;
+    return 0;
+}
+
+void increaseStep(double& timeStep, const Problem& problem) {
+    double newTimeStep = timeStep * problem.STEP_INCREASE_FACTOR;
+    if (newTimeStep > problem.TIME_STEP) {
+        newTimeStep = problem.TIME_STEP;
+    }
+    timeStep = newTimeStep;
+}
+
+void decreaseStep(double& timeStep, const Problem& problem) {
+    double newTimeStep = timeStep * problem.STEP_DECREASE_FACTOR;
+    if (newTimeStep < problem.MIN_STEP) {
+        newTimeStep = problem.MIN_STEP;
+    }
+    timeStep = newTimeStep;
 }

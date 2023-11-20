@@ -1,7 +1,4 @@
 #include <iostream>
-#include <iomanip>
-#include <cmath>
-#include <utility>
 #include <vector>
 #include <string>
 
@@ -18,7 +15,6 @@ int main() {
 
     vector<body> bodies = problem.bodies;
     double t = problem.TIME_START;
-    double timeStep = problem.TIME_STEP;
 
     system("chcp 65001"); // Fuck Windows
 
@@ -27,13 +23,13 @@ int main() {
 
 
     if (problem.METHOD == "Eul") {
-        comp(ByEuler, bodies, t, problem.TIME_END, timeStep, DataOut);
+        comp(ByEuler, bodies, t, problem.TIME_END, problem, DataOut);
     } else if (problem.METHOD == "PC") {
-        comp(ByPredictorCorrector, bodies, t, problem.TIME_END, timeStep, DataOut);
+        comp(ByPredictorCorrector, bodies, t, problem.TIME_END, problem, DataOut);
     } else if (problem.METHOD == "LF") {
-        compByLF(bodies, t, problem.TIME_END, timeStep, DataOut);
+        compByLF(bodies, t, problem.TIME_END, problem, DataOut);
     } else if (problem.METHOD == "RK4") {
-        comp(ByRK4, bodies, t, problem.TIME_END, timeStep, DataOut);
+        comp(ByRK4, bodies, t, problem.TIME_END, problem, DataOut);
     }
 
 

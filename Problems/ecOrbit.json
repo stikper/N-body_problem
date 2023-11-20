@@ -1,0 +1,29 @@
+{
+  "config": {
+    "time_start": 0,
+    "time_step": 17280,
+    "time_end": 6.311e9,
+    "method": "LF",
+    "data_out_time_step": 864000,
+    "step_decrease_factor": 1e-1,
+    "step_decrease_acceleration_trigger": 10,
+    "min_step": 60,
+    "step_increase_factor": 1e1,
+    "step_increase_acceleration_trigger": 1e-1
+  },
+
+  "bodies": [
+    {
+      "name": "Sun",
+      "mass": 1.98847e30,
+      "coordinates": [0, 0, 0],
+      "velocity": [0, 0, 0]
+    },
+    {
+      "name": "Earth",
+      "mass": 5.9722e24,
+      "coordinates": [2.831e11, 0, 0],
+      "velocity": [0, 6.836588e3, 0]
+    }
+  ]
+}

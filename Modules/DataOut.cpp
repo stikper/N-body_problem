@@ -7,7 +7,7 @@ dataOut::dataOut(const std::vector<body>& bodies, const double& step, const std:
     _tPrevious = 0;
     for(size_t i = 0; i < _n; i++) {
         _dataFiles.resize(_n + 1);
-        _dataFiles[i].open(bodies[i].name + "_" + method + ".txt");
+        _dataFiles[i].open("Data_output/" + bodies[i].name + "_" + method + ".txt");
     }
 }
 

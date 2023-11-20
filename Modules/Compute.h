@@ -22,9 +22,9 @@ double RK4Step(const double& f1, const double& f2, const double& f3, const doubl
 std::vector<double> RK4VectorStep(const std::vector<double>& f1, const std::vector<double>& f2, const std::vector<double>& f3, const std::vector<double>& f4, const std::vector<double>& yi, const double& h);
 
 // Motion computers
-std::vector<body> comp(const std::function<std::vector<body>(std::vector<body>&, const double&)>& computer, const std::vector<body>& bodies, double& t, const double& timeEnd, const double& timeStep, std::vector<std::ofstream>& dataFiles);
+std::vector<body> comp(const std::function<std::vector<body>(std::vector<body>&, const double&)>& computer, const std::vector<body>& bodies, double& t, const double& timeEnd, const double& timeStep, dataOut& DataOut);
 
-std::vector<body> compByLF(const std::vector<body>& bodies, double& t, const double& timeEnd, const double& timeStep, std::vector<std::ofstream>& dataFiles);
+std::vector<body> compByLF(const std::vector<body>& bodies, double& t, const double& timeEnd, const double& timeStep, dataOut& DataOut);
 
 
 // Motion step computers

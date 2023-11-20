@@ -25,6 +25,7 @@ int main() {
     double TIME_END = problemConfig["time_end"];
     double TIME_STEP = problemConfig["time_step"];
     string METHOD = problemConfig["method"];
+    double DATA_OUT_TIME_STEP = problemConfig["data_out_time_step"];
 
 
     // Bodies
@@ -46,36 +47,23 @@ int main() {
     }
 
     bodies = getAccelForAll(bodies);
-
-
-    vector<ofstream> dataFiles(bodies.size() + 1);
-
-    for(size_t i = 0; i < bodies.size(); i++) {
-        dataFiles[i].open(bodies[i].name + METHOD + ".txt");
-    }
-    dataFiles[bodies.size()].open("total_energy.txt");
-
-
     system("chcp 65001"); // Fuck Windows
 
-    dataOut(bodies, dataFiles);
-    dataWriter(dataFiles[bodies.size()], vector<double> {t, getTotalEnergy(bodies)});
+    dataOut DataOut(bodies, DATA_OUT_TIME_STEP, METHOD);
+    DataOut.Out(bodies, t);
 
 
     if (METHOD == "Eul") {
-        comp(ByEuler, bodies, t, TIME_END, TIME_STEP, dataFiles);
+        comp(ByEuler, bodies, t, TIME_END, TIME_STEP, DataOut);
     } else if (METHOD == "PC") {
-        comp(ByPredictorCorrector, bodies, t, TIME_END, TIME_STEP, dataFiles);
+        comp(ByPredictorCorrector, bodies, t, TIME_END, TIME_STEP, DataOut);
     } else if (METHOD == "LF") {
-        compByLF(bodies, t, TIME_END, TIME_STEP, dataFiles);
+        compByLF(bodies, t, TIME_END, TIME_STEP, DataOut);
     } else if (METHOD == "RK4") {
-        comp(ByRK4, bodies, t, TIME_END, TIME_STEP, dataFiles);
+        comp(ByRK4, bodies, t, TIME_END, TIME_STEP, DataOut);
     }
 
 
-    for (size_t i = 0; i < bodies.size(); i++) {
-        dataFiles[i].close();
-    }
-
+    DataOut.close();
     return 0;
 }

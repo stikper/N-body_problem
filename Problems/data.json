@@ -3,7 +3,8 @@
     "time_start": 0,
     "time_step": 86400,
     "time_end": 946728000,
-    "method": "RK4"
+    "method": "LF",
+    "data_out_time_step": 86400
   },
 
   "bodies": [

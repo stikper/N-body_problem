@@ -8,9 +8,16 @@
 #include "Body.h"
 
 
-// Data output methods
-void dataWriter(std::ofstream& out, const std::vector<double>& data);
-
-void dataOut(const std::vector<body>& bodies, std::vector<std::ofstream>& dataFiles);
+class dataOut {
+private:
+    std::vector<std::ofstream> _dataFiles;
+    double _step;
+    size_t _n;
+    static void Writer(std::ofstream& out, const std::vector<double>& data);
+public:
+    dataOut(const std::vector<body>& bodies, const double& step, const std::string& method);
+    void Out(const std::vector<body>& bodies, const double& t);
+    void close();
+};
 
 #endif //DATAOUT_H

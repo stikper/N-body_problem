@@ -39,22 +39,21 @@ std::vector<double> RK4VectorStep(const std::vector<double>& f1, const std::vect
 
 
 // Motion computers
-std::vector<body> comp(const std::function<std::vector<body>(std::vector<body>&, const double&)>& computer, const std::vector<body>& bodies, double& t, const double& timeEnd, const double& timeStep, std::vector<std::ofstream>& dataFiles) {
+std::vector<body> comp(const std::function<std::vector<body>(std::vector<body>&, const double&)>& computer, const std::vector<body>& bodies, double& t, const double& timeEnd, const double& timeStep, dataOut& DataOut) {
     std::vector<body> result = bodies;
     while (t < timeEnd) {
         result = computer(result, timeStep);
 
         t += timeStep;
 
-        dataOut(result, dataFiles);
-        dataWriter(dataFiles[result.size()], std::vector<double> {t, getTotalEnergy(result)});
+        DataOut.Out(result, t);
     }
     return result;
 }
 
 
 
-std::vector<body> compByLF(const std::vector<body>& bodies, double& t, const double& timeEnd, const double& timeStep, std::vector<std::ofstream>& dataFiles) {
+std::vector<body> compByLF(const std::vector<body>& bodies, double& t, const double& timeEnd, const double& timeStep, dataOut& DataOut) {
     std::vector<body> result = bodies;
     if (t < timeEnd) {
         std::vector<body> LFBodies = ToLF(bodies, timeStep); // First step (Get V(i+h/2))
@@ -65,8 +64,7 @@ std::vector<body> compByLF(const std::vector<body>& bodies, double& t, const dou
 
             result = FromLF(LFBodies, timeStep); // Get V(i)
 
-            dataOut(result, dataFiles);
-            dataWriter(dataFiles[result.size()], std::vector<double> {t, getTotalEnergy(result)});
+            DataOut.Out(result, t);
         }
     }
     return result;

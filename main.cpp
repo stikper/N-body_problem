@@ -50,7 +50,7 @@ int main() {
     system("chcp 65001"); // Fuck Windows
 
     dataOut DataOut(bodies, DATA_OUT_TIME_STEP, METHOD);
-    DataOut.Out(bodies, t);
+    DataOut.forceOut(bodies, t);
 
 
     if (METHOD == "Eul") {

@@ -17594,7 +17594,7 @@ inline void grisu2_digit_gen(char* buffer, int& length, int& decimal_exponent,
     //      N = 1 + ceil(p * log_10(2))
     //
     // decimal digits are sufficient to identify all binary floating-point
-    // numbers (Matula, "In-and-Out conversions").
+    // numbers (Matula, "In-and-forceOut conversions").
     // This implies that the algorithm does not produce more than N decimal
     // digits.
     //

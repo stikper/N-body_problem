@@ -4,7 +4,7 @@
 // Methods for vectors and matrix
 double getVectorMagnitude(const std::vector<double>& a) {
     double sumOfSquares = 0;
-    for (auto i : a) {
+    for (const auto i : a) {
         sumOfSquares += pow(i, 2);
     }
     return sqrt(sumOfSquares);
@@ -67,8 +67,8 @@ double getProjection(const std::vector<double>& a, const std::vector<double>& b)
 }
 
 std::vector<double> multiplyMatrixVector(const std::vector<std::vector<double>>& A,const std::vector<double>& b) {
-    size_t rows = A.size();
-    size_t cols = A[0].size();
+    const size_t rows = A.size();
+    const size_t cols = A[0].size();
     std::vector<double> result(cols, 0.0);
 
     for (size_t i = 0; i < rows; i++) {
@@ -81,25 +81,25 @@ std::vector<double> multiplyMatrixVector(const std::vector<std::vector<double>>&
 }
 
 std::vector<double> rotateVectorByX(const std::vector<double>& vec,const double& angle = 0) {
-    std::vector<std::vector<double>> rot(3, std::vector<double>(3, 0)); // Rotation matrix
+    const std::vector<std::vector<double>>
     rot = {{1, 0, 0},
            {0, cos(angle), -sin(angle)},
-           {0, sin(angle), cos(angle)}};
+           {0, sin(angle), cos(angle)}}; // Rotation matrix
     return multiplyMatrixVector(rot, vec);
 }
 
 std::vector<double> rotateVectorByY(const std::vector<double>& vec,const double& angle = 0) {
-    std::vector<std::vector<double>> rot(3, std::vector<double>(3, 0)); // Rotation matrix
+    const std::vector<std::vector<double>>
     rot = {{cos(angle), 0, sin(angle)},
            {0, 1, 0},
-           {-sin(angle), 0, cos(angle)}};
+           {-sin(angle), 0, cos(angle)}}; // Rotation matrix
     return multiplyMatrixVector(rot, vec);
 }
 
 std::vector<double> rotateVectorByZ(const std::vector<double>& vec,const double& angle = 0) {
-    std::vector<std::vector<double>> rot(3, std::vector<double>(3, 0)); // Rotation matrix
+    const std::vector<std::vector<double>>
     rot = {{cos(angle), -sin(angle), 0},
            {sin(angle), cos(angle), 0},
-           {0, 0, 1}};
+           {0, 0, 1}}; // Rotation matrix
     return multiplyMatrixVector(rot, vec);
 }

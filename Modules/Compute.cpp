@@ -65,6 +65,9 @@ std::vector<body> comp(const std::function<std::vector<body>(std::vector<body>&,
             case 0:
                 t += timeStep;
                 result = newResult;
+                break;
+            case default:
+                break;
         }
 
         DataOut.Out(result, t);
@@ -105,6 +108,9 @@ std::vector<body> compByLF(const std::vector<body>& bodies, double& t, const dou
                     LFBodies = newLFBodies;
                     result = FromLF(LFBodies, timeStep); // Get V(i)
                     t += timeStep;
+                    break;
+                case default:
+                    break;
             }
 
             DataOut.Out(result, t);
@@ -140,8 +146,8 @@ std::vector<body> ByPredictorCorrector(const std::vector<body>& bodies, const do
     std::vector<body> result;
     result.reserve(bodies.size());
 
-    std::vector<body> k1 = bodies;
-    std::vector<body> k2 = EulerByDataOf(k1, k1, timeStep);
+    const std::vector<body>& k1 = bodies;
+    const std::vector<body>& k2 = EulerByDataOf(k1, k1, timeStep);
 
     for (size_t i = 0; i < bodies.size(); i++) {
         body Body = bodies[i];
@@ -182,15 +188,10 @@ std::vector<body> ByRK4(const std::vector<body>& bodies, const double& timeStep)
     std::vector<body> result;
     result.reserve(bodies.size());
 
-    std::vector<body> k1;
-    std::vector<body> k2;
-    std::vector<body> k3;
-    std::vector<body> k4;
-
-    k1 = bodies;
-    k2 = EulerByDataOf(k1, k1, timeStep / 2);
-    k3 = EulerByDataOf(k2, k1, timeStep / 2);
-    k4 = EulerByDataOf(k3, k1, timeStep);
+    const std::vector<body>& k1 = bodies;
+    const std::vector<body>& k2 = EulerByDataOf(k1, k1, timeStep / 2);
+    const std::vector<body>& k3 = EulerByDataOf(k2, k1, timeStep / 2);
+    const std::vector<body>& k4 = EulerByDataOf(k3, k1, timeStep);
 
     for (size_t i = 0; i < bodies.size(); i++) {
         body Body = bodies[i];

@@ -18,14 +18,14 @@ std::vector<double> getForce(const std::vector<body>& bodies, const size_t& body
             continue;
         }
         std::vector<double> r = getDistanceVector(bodies[bodyIndex], bodies[i]);
-        double distance = getDistance(r);
+        const double distance = getDistance(r);
         force = sumVectorVector(force, multiplyNumberVector(G * bodies[i].m * bodies[bodyIndex].m / pow(distance, 3), r)); // Law of Gravity
     }
     return force;
 }
 
 std::vector<double> getAcceleration(const std::vector<body>& bodies, const size_t& bodyIndex) {
-    std::vector<double> force = getForce(bodies, bodyIndex);
+    const std::vector<double> force = getForce(bodies, bodyIndex);
     std::vector<double> acceleration = multiplyNumberVector(1 / bodies[bodyIndex].m, force); // Newton's second law
     return acceleration;
 }
@@ -73,7 +73,7 @@ double getTotalEnergy(const std::vector<body>& bodies) {
 
 //Methods for changing coordinate system
 std::vector<double> coordsToCart(const double& r = 0, const double& theta = 0, const double& phi = 0) {
-    std::vector<double> coords(3, 0.0);
+    std::vector<double> coords(3);
     coords[0] = r * sin(theta) * cos(phi);
     coords[1] = r * sin(theta) * sin(phi);
     coords[2] = r * cos(theta);
@@ -81,7 +81,7 @@ std::vector<double> coordsToCart(const double& r = 0, const double& theta = 0, c
 }
 
 std::vector<double> velocitiesToCart(const double& theta = 0, const double& phi = 0, const double& v_r = 0, const double& v_theta = 0, const double& v_phi = 0) {
-    std::vector<double> velocities(3, 0.0);
+    std::vector<double> velocities(3);
     // Axes: r -> z, phi -> y, theta -> x
     velocities[0] = v_theta; // Axis theta
     velocities[1] = v_phi; // Axis phi

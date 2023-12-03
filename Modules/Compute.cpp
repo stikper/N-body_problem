@@ -66,7 +66,7 @@ std::vector<body> comp(const std::function<std::vector<body>(std::vector<body>&,
                 t += timeStep;
                 result = newResult;
                 break;
-            case default:
+            default:
                 break;
         }
 
@@ -109,7 +109,7 @@ std::vector<body> compByLF(const std::vector<body>& bodies, double& t, const dou
                     result = FromLF(LFBodies, timeStep); // Get V(i)
                     t += timeStep;
                     break;
-                case default:
+                default:
                     break;
             }
 

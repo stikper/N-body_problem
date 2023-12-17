@@ -1,0 +1,29 @@
+{
+  "config": {
+    "time_start": 0,
+    "time_step": 86400,
+    "time_end": 7884000000,
+    "method": "LF",
+    "data_out_time_step": 86400,
+    "step_decrease_factor": 1e-1,
+    "step_decrease_acceleration_trigger": 10,
+    "min_step": 60,
+    "step_increase_factor": 1e1,
+    "step_increase_acceleration_trigger": 1e-1
+  },
+
+  "bodies": [
+    {
+      "name": "Star",
+      "mass": 1.98847e30,
+      "coordinates": [0, 0, 0],
+      "velocity": [0, 0, 0]
+    },
+    {
+      "name": "Body",
+      "mass": 1.89942e+27,
+      "coordinates": [-1.01011e+12, -2.59749e+12, -1.0836e+12],
+      "velocity": [6299.62, 7004.56, -149.627]
+    }
+  ]
+}

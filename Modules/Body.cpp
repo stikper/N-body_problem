@@ -87,7 +87,7 @@ std::vector<double> velocitiesToCart(const double& theta = 0, const double& phi 
     velocities[1] = v_phi; // Axis phi
     velocities[2] = v_r; // Axis r
     // Rotate to x, y, z axes
-    rotateVectorByY(velocities, theta); // r to z
-    rotateVectorByZ(velocities, phi); // theta to x (phi to y)
+    velocities = rotateVectorByY(velocities, theta); // r to z
+    velocities = rotateVectorByZ(velocities, phi); // theta to x (phi to y)
     return velocities;
 }

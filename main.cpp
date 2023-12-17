@@ -10,7 +10,7 @@ using namespace std;
 
 int main() {
     // The problem initialising
-    ifstream problemFile("../Problems/ecOrbit.json");
+    ifstream problemFile("../Problems/SP-45.json");
     Problem problem(problemFile);
 
     vector<body> bodies = problem.bodies;

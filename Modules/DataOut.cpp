@@ -14,9 +14,9 @@ dataOut::dataOut(const std::vector<body>& bodies, const double& step, const std:
 
 void dataOut::forceOut(const std::vector<body>& bodies, const double& t) {
     for (size_t i = 0; i < _n; i++) {
-        Writer(_dataFiles[i], bodies[i].coordinates);
+        Writer(_dataFiles[i], t, bodies[i].coordinates);
     }
-    Writer(_dataFiles[_n], std::vector{t, getTotalEnergy(bodies)});
+    Writer(_dataFiles[_n], t, std::vector{getTotalEnergy(bodies)});
 
     _tPrevious = t;
 }
@@ -27,7 +27,8 @@ void dataOut::Out(const std::vector<body>& bodies, const double& t) {
     }
 }
 
-void dataOut::Writer(std::ofstream& out, const std::vector<double>& data) {
+void dataOut::Writer(std::ofstream& out, const double& t, const std::vector<double>& data) {
+    out << t << " ";
     for (const auto i : data) {
         out << i << " ";
     }

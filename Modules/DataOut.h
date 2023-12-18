@@ -14,7 +14,7 @@ private:
     double _step;
     size_t _n;
     double _tPrevious;
-    static void Writer(std::ofstream& out, const std::vector<double>& data);
+    static void Writer(std::ofstream& out, const double& t, const std::vector<double>& data);
 public:
     dataOut(const std::vector<body>& bodies, const double& step, const std::string& method);
     void forceOut(const std::vector<body>& bodies, const double& t);

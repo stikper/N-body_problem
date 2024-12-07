@@ -43,7 +43,7 @@ std::vector<double> multiplyNumberVector(const double& n, const std::vector<doub
 double dotProduct(const std::vector<double>& a, const std::vector<double>& b) {
     double result = 0;
     for (size_t i = 0; i < std::min(a.size(), b.size()); i++) {
-        result = a[i] * b[i];
+        result += a[i] * b[i];
     }
     return result;
 }
